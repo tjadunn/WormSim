@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head> 
+  <style type="text/css">
+      div.bar {
+        display: inline-block;
+        width: 20px;
+        height: 75px;
+        margin-right: 2px;
+        background-color: teal;
+      } </style>
+    <meta charset="utf-8">
+      <title>D3 Page Template</title>
+        <script type="text/javascript" src="d3/d3.js"></script>
+  </head>
+    <body>
+      <script type="text/javascript">
+        var dataset = [10, 13, 19, 21, 25, 22, 18, 15, 13, 11,
+                       12, 15, 20, 18, 17, 16, 18, 23, 25]
+ 
+	var h = 50;
+        var w = 500;
+        var barPadding = 1;
+  /*
+        d3.select("body").selectAll("div")
+          .data(dataset)
+          .enter()
+          .append("div")
+          .attr("class", "bar")
+          .style("height", function(d) {
+            var barHeight = d * 5;
+            return barHeight + "px";
+          }); 
+   
+          var svg = d3.select("body")
+                      .append("svg")
+                      .attr("width", w)
+                      .attr("height", h);
+
+          var circles = svg.selectAll("circle")
+             .data(dataset)
+             .enter()
+             .append("circle");
+          
+          circles.attr("cx", function(d, i) {
+            return (i * 50) + 25;
+            })
+            .attr("cy", h/2)
+            .attr("r", function(d) {
+              return d;
+            })
+            .attr("fill", "yellow")
+            .attr("stroke", "orange")
+            .attr("stroke-width", function(d) {
+              return d/2;
+            }); 
+          */
+          var svg = d3.select("body")
+                      .append("svg")
+                      .attr("width", w)
+                      .attr("height", h);
+              svg.selectAll("rect")
+                 .data(dataset)
+                 .enter()
+                 .append("rect")
+                 .attr({x: function(d, i) {
+                          return i * (w / dataset.length);
+                        },
+                        y: function(d) {
+                          return h - d;
+                        },
+                        width: w / dataset.length - barPadding,
+                        height: function(d) {
+                          return d;
+                        },
+                        fill: function(d) {
+                          return "rgb(0, 0, " + (d * 10) + ")";
+                        }});
+              svg.selectAll("text")
+                 .data(dataset)
+                 .enter()
+                 .append("text")
+                 .text(function(d) {
+                   return d;
+                 })
+                 .attr({x : function(d, i) {
+                          return i * (w / dataset.length) + 5;
+                       },
+                       y: function(d) {
+                         return (h - d) + 11;
+                       },
+                       })
+                 .attr("font-family", "sans-serif")
+                 .attr("font-size", "11px")
+                 .attr("fill", "white")
+                 .attr("text-anchor", "middle");
+      </script>
+    </body>
+</html>
+
