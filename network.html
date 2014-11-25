@@ -23,7 +23,7 @@
 var w = 500;
 var h = 350;
 
-//Original data
+//datasets for levels
 var dataset1 = {
   nodes: [
     { name: "Manchester University" },
@@ -115,7 +115,7 @@ var dataset3 = {
 
 var levelOne = function()
 {
-  d3.selectAll("svg").remove();
+  d3.selectAll("svg").remove(); //remove all the svg elements for new graph
   generate_graph(dataset1)
 }
 var levelTwo = function()
@@ -133,6 +133,8 @@ var levelCustom = function()
   d3.selectAll("svg").remove();
 }
 
+
+//Graph generator
 function generate_graph(dataset)
 {
   var force = d3.layout.force()
