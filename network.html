@@ -26,206 +26,6 @@
 			//Width and height
 var w = 500;
 var h = 350;
-var p;
-//datasets for levels
-var dataset1 = {
-  nodes: [
-    { name: "Manchester University" },
-    { name: "Leeds University" },
-    { name: "Liverpool Univeristy" },
-
-    ],
-  edges: [
-    { source: 0, target: 1 },
-	{ source: 1, target: 2 },
-	{ source: 1, target: 0 },
-	{ source: 2, target: 1 },
-   ]
- };
-
-var dataset2 = {
-  nodes: [
-    { name: "Manchester University" },
-    { name: "Leeds University" },
-    { name: "Liverpool Univeristy" },
-    { name: "University of Bristol" },
-    { name: "Imperial College London" },
-    { name: "University of Edinburgh" },
-    { name: "Univeristy College London" },
-    ],
-  edges: [
-    { source: 0, target: 1 },
-	{ source: 1, target: 2 },
-	{ source: 1, target: 0 },
-	{ source: 2, target: 1 },
-	{ source: 3, target: 6 },
-	{ source: 3, target: 0 },
-	{ source: 4, target: 6 },
-	{ source: 5, target: 4 },
-	{ source: 6, target: 2 },
-	{ source: 6, target: 0 },
-
-   ]
- };
-
-var dataset3 = {
-  nodes: [
-    { name: "Manchester University" },
-    { name: "Leeds University" },
-    { name: "Liverpool Univeristy" },
-    { name: "University of Bristol" },
-    { name: "Imperial College London" },
-    { name: "University of Edinburgh" },
-    { name: "Univeristy College London" },
-    { name: "Univeristy of Nottingham" },
-    { name: "University of Sheffield" },
-    { name: "University of York" },
-    { name: "London School of Economics" },
-    { name: "Oxford University" },
-    { name: "Cambridge University" },
-    { name: "Trinity College Dublin" },
-    { name: "University of Glasgow" },
-    ],
-  edges: [
-    { source: 0, target: 1 },
-	{ source: 1, target: 2 },
-	{ source: 1, target: 0 },
-	{ source: 2, target: 1 },
-	{ source: 3, target: 6 },
-	{ source: 3, target: 0 },
-	{ source: 4, target: 6 },
-	{ source: 5, target: 4 },
-	{ source: 6, target: 2 },
-	{ source: 6, target: 0 },
-	{ source: 7, target: 4 },
-	{ source: 7, target: 6 },
-	{ source: 8, target: 10 },
-	{ source: 8, target: 1 },
-	{ source: 9, target: 8 },
-	{ source: 10, target: 6 },
-	{ source: 10, target: 5 },
-	{ source: 10, target: 9 },
-	{ source: 11, target: 2 },
-	{ source: 11, target: 0 },
-	{ source: 11, target: 2 },
-	{ source: 12, target: 7 },
-	{ source: 12, target: 2 },
-	{ source: 13, target: 7 },
-	{ source: 14, target: 2 },
-	{ source: 14, target: 0 },
-   ]
- };
- //Initialize a default force layout, using the nodes and edges in dataset
-
-var levelOne = function()
-{
-  d3.selectAll("svg").remove(); //remove all the svg elements for new graph
-  generate_dropdown(dataset1, "divLevelOne");
-  generate_graph(dataset1);
-  
-}
-
-var levelTwo = function()
-{
-  d3.selectAll("svg").remove();
-  generate_dropdown(dataset2, "divLevelTwo");
-  generate_graph(dataset2);
-
-} 
-var levelThree = function()
-{
-  d3.selectAll("svg").remove();
-  generate_dropdown(dataset3, "divLevelThree");
-  generate_graph(dataset3);
-}       
-var levelCustom = function()
-{
-  d3.selectAll("svg").remove();
-}
-
-
-//Graph generator
-function generate_graph(dataset)
-{
-  var force = d3.layout.force()
-    .nodes(dataset.nodes)
-    .links(dataset.edges)
-    .size([w, h])
-    .linkDistance([100])
-    .charge([-200])
-    .start();
-			              
-  //Create an SVG element
-  var svg = d3.select("body")
-    .append("svg")
-    .attr("width", w)
-    .attr("height", h);
-			
-//Create edges as lines
-  var edges = svg.selectAll("line")
-    .data(dataset.edges)
-    .enter()
-    .append("line")
-    .style("stroke", "#ccc")
-    .style("stroke-width", 1);
- 
-//Create a group of elements for the nodes
-  var gnodes = svg.selectAll('g.gnode')
-    .data(dataset.nodes)
-    .enter()
-    .append('g')
-    .classed('gnode', true);
-    
-//Add a circle to the node   
-  var nodes = gnodes.append("image")
-    .attr("xlink:href", "/Desktop/project-folder/comp.ico")
-    .attr("x", -8)
-    .attr("y", -8)
-    .attr("width", 30)
-    .attr("height", 30)
-  /*.append("circle)
-  .attr("class", "node")
-  .attr("r", 10)
-  .style("fill", function(d, i) { 
-    return colors(i); 
-   })*/
-    .on("mouseover", function(d) {
-      d3.select(labels[0][d.index])
-      .style("visibility", "visible");
-    })
-    .on("mouseout", function(d) {
-       d3.select(labels[0][d.index])
-       .style("visibility", "hidden");
-    })
-    //.on("click", function(d) {
-    
-    .call(force.drag);
-
-//Labels for the group
-  var labels = gnodes.append("text")
-    .text(function(d) { 
-       return d.name; 
-    })
-    .attr("font-family", "sans-serif")
-    .attr("font-size", "11px")
-    .style("visibility", "hidden"); //hide under hover over the node
-
-
-//Every time the simulation "ticks", this will be called
-  force.on("tick", function() {
-    edges.attr("x1", function(d) { return d.source.x; })
-         .attr("y1", function(d) { return d.source.y; })
-	     .attr("x2", function(d) { return d.target.x; })
-	     .attr("y2", function(d) { return d.target.y; });
-			
-    gnodes.attr("transform", function(d) { 
-      return 'translate(' + [d.x, d.y] + ')'; 
-    })
-  });
-}
-
-var w = 500;
-var h = 350;
 
 var node_params = {
     social_eng: false,
@@ -407,18 +207,18 @@ function generate_graph(dataset)
     .classed('gnode', true);
     
 //Add a circle to the node   
-  var nodes = gnodes.append("circle")
-    /*.attr("xlink:href", "/Desktop/project-folder/comp.ico")
+  var nodes = gnodes.append("image")
+    .attr("xlink:href", "/Desktop/project-folder/comp.ico")
     .attr("x", -8)
     .attr("y", -8)
     .attr("width", 30)
     .attr("height", 30)
-  */
+  /*
   .attr("class", "node")
   .attr("r", 10)
   .style("fill", function(d, i) { 
     return colors(i); 
-   })
+   })*/
     .on("mouseover", function(d) {
       d3.select(labels[0][d.index])
       .style("visibility", "visible");
@@ -458,7 +258,7 @@ function generate_dropdown(dataset, div_location)
 {
   $(document).ready(function() {
     var s = $("<select />");
-    var t;
+    var t, u, v, w;
      $("<option />", {value: -1, text: "Please Select Network"}).appendTo(s);
     for(var val in dataset.nodes)
     {
