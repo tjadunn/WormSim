@@ -1,0 +1,891 @@
+var networkSelectMenu;
+var socialEngSelectMenu;
+var wormSelectMenu;
+var wormBtn;
+var newTextBoxDiv;
+var topologySelectMenu;
+
+var selected = false;
+var converged = false;
+var stopSimulation = false;
+var stageEnded = false; //to keep track of whether to spawn next worm
+//grouping for nodes
+var gnodes;
+
+//fd layout 
+var force;
+
+//var for svg elements
+var svg;
+
+var w = 500;
+var h = 350;
+
+var spawn; //initial outbreak node
+var xyCoords = []; //worm xy coords
+var infections = [];
+var infected = []; //infect node indexes
+
+var node_params = {
+    social_eng: false,
+    intrusion_detect: false,
+    honeypot: false 
+};
+
+var bool_params = [" true", " false"];
+
+var topologies = ["Line", "Star", "Complete", "Ring", "Mesh", "Hybrid"];
+
+var worms = [
+    { name: "W32.BORM", techniques: ["BUFF_OVERFLOW"]
+    , packet_types: ["TCP"], ports_used: [135] },
+    { name: "W32.BLASTER", techniques: ["BUFF_OVERFLOW"]
+     , packet_types: ["TCP", "UDP"], ports_used: [135, 139, 4444] },
+    { name: "W32.ROOTATTACK", techniques: ["SOCIAL_ENG"]
+     , packet_types: ["TCP", "UDP"], ports_used: [22] }
+    ];
+
+//datasets for levels
+var dataset1 = {
+  nodes: [
+      { name: "Manchester University", system_type: "W32", social_eng: " false"
+               , intrusion_detect: " false", honeypot: " false"
+       , infected_with: "none", adjacent_to: [1, 2]},
+      { name: "Leeds University", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+       , infected_with: "none", adjacent_to: [2, 0]},
+      { name: "Liverpool Univeristy", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+       , infected_with: "none", adjacent_to: [1, 0]},
+
+    ],
+  edges: [
+    { source: 0, target: 1 },
+    { source: 0, target: 2 },
+	{ source: 1, target: 2 },
+	{ source: 1, target: 0 },
+	{ source: 2, target: 1 },
+   ]
+ };
+
+var dataset2 = {
+  nodes: [
+    { name: "Manchester University", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [1, 6, 3]},
+    { name: "Leeds University", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [2, 0]},
+    { name: "Liverpool Univeristy", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [1, 6]},
+    { name: "University of Bristol", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [0, 6]},
+    { name: "Imperial College London", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [5, 6]},
+    { name: "University of Edinburgh", system_type: "W32", social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [4]},
+    { name: "Univeristy College London", system_type: "W32"
+            , social_eng: " false"
+            , intrusion_detect: " false", honeypot: " false"
+            , infected_with: "none", adjacent_to: [0, 2, 3, 4]},
+    ],
+  edges: [
+    { source: 0, target: 1 },
+	{ source: 1, target: 2 },
+	{ source: 1, target: 0 },
+	{ source: 2, target: 1 },
+	{ source: 3, target: 6 },
+	{ source: 3, target: 0 },
+	{ source: 4, target: 6 },
+	{ source: 5, target: 4 },
+	{ source: 6, target: 2 },
+	{ source: 6, target: 0 },
+
+   ]
+ };
+
+var dataset3 = {
+  nodes: [
+    { name: "Manchester University", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [1, 3, 6, 11, 14]},
+    { name: "Leeds University", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [0, 2, 8, 11, 14]},
+    { name: "Liverpool Univeristy", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [1, 6, 11, 12, 14]},
+    { name: "University of Bristol", system_type: "W32", social_eng: " false" 
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [0, 6]},
+    { name: "Imperial College London", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [5, 6, 7]},
+    { name: "University of Edinburgh", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [4, 10]},
+    { name: "Univeristy College London", system_type: "W32"
+             , social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [3, 4, 7, 10]},
+    { name: "Univeristy of Nottingham", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [4, 6, 12, 13]},
+    { name: "University of Sheffield", system_type: "W32", social_eng: " false" 
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [1, 9, 10]},
+    { name: "University of York", system_type: "W32", social_eng: " false" 
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [8, 10]},
+    { name: "London School of Economics", system_type: "W32"
+             , social_eng: " false" 
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [5, 6, 8, 9]},
+    { name: "Oxford University", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [0, 2]},
+    { name: "Cambridge University", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [2, 7]},
+    { name: "Trinity College Dublin", system_type: "W32", social_eng: " false"
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [7]},
+    { name: "University of Glasgow", system_type: "W32", social_eng: " false" 
+             , intrusion_detect: " false", honeypot: " false"
+             , infected_with: "none", adjacent_to: [0, 2]},
+    ],
+  edges: [
+    { source: 0, target: 1 },
+	{ source: 1, target: 2 },
+	{ source: 1, target: 0 },
+	{ source: 2, target: 1 },
+	{ source: 3, target: 6 },
+	{ source: 3, target: 0 },
+	{ source: 4, target: 6 },
+	{ source: 5, target: 4 },
+	{ source: 6, target: 2 },
+	{ source: 6, target: 0 },
+	{ source: 7, target: 4 },
+	{ source: 7, target: 6 },
+	{ source: 8, target: 10 },
+	{ source: 8, target: 1 },
+	{ source: 9, target: 8 },
+	{ source: 10, target: 6 },
+	{ source: 10, target: 5 },
+	{ source: 10, target: 9 },
+	{ source: 11, target: 2 },
+	{ source: 11, target: 0 },
+	{ source: 12, target: 7 },
+	{ source: 12, target: 2 },
+	{ source: 13, target: 7 },
+	{ source: 14, target: 2 },
+	{ source: 14, target: 0 },
+   ]
+ };
+
+ //Initialize a default force layout, using the nodes and edges in dataset
+var colors = d3.scale.category10();
+
+//need to make copys of datasets for complete refresh
+var levelOne = function()
+{
+  $("#divLevelTwo").empty();
+  $("#divLevelThree").empty();
+  $("#divLevelCustom").empty();
+  d3.selectAll("svg").remove(); //remove all the svg elements for new graph
+  generate_dropdown(dataset1, "divLevelOne");
+  generate_graph(dataset1);
+}
+
+var levelTwo = function()
+{
+  $("#divLevelOne").empty();
+  $("#divLevelThree").empty();
+  $("#divLevelCustom").empty();
+  d3.selectAll("svg").remove();
+  generate_dropdown(dataset2, "divLevelTwo");
+  generate_graph(dataset2);
+} 
+var levelThree = function()
+{
+  $("#divLevelOne").empty();
+  $("#divLevelTwo").empty();
+  $("#divLevelCustom").empty();
+  d3.selectAll("svg").remove();
+  generate_dropdown(dataset3, "divLevelThree");
+  generate_graph(dataset3)
+}
+
+var levelCustom = function()
+{
+  d3.selectAll("svg").remove();
+  generate_custom();
+}
+
+//generate_graph(dataset3); 
+//Graph generator
+function generate_graph(dataset)
+{
+  var copy = duplicate(dataset);
+    
+  force = d3.layout.force()
+    .nodes(dataset.nodes)
+    .links(dataset.edges)
+    .size([w, h])
+    .linkDistance([100])
+    .charge([-300])
+    .start()
+    .on("end", function() {
+      converged = true;
+  });
+    
+
+	              
+  //Create an SVG element
+     svg = d3.select("body")
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h);
+			
+//Create edges as lines
+  var edges = svg.selectAll("line")
+    .data(dataset.edges)
+    .enter()
+    .append("line")
+    .style("stroke", "#ccc")
+    .style("stroke-width", 1);
+ 
+//Create a group of elements for the nodes
+     gnodes = svg.selectAll('g.gnode')
+    .data(dataset.nodes)
+    .enter()
+    .append('g')
+    .classed('gnode', true)
+
+    
+//Add a circle to the node   
+  var nodes = gnodes.append("circle")
+    /*.attr("xlink:href", "/Desktop/project-folder/comp.ico")
+    .attr("x", -8)
+    .attr("y", -8)
+    .attr("width", 30)
+    .attr("height", 30)
+  */
+  .attr("class", "node")
+  .attr("r", 10)
+  .style("fill", function(d) {
+      if(d.infected_with == "W32.BORM") 
+          return "red";
+      else if(d.infected_with == "W32.BLASTER")
+          return "purple";
+      else if(d.infected_with == "W32.ROOTATTACK")
+          return "orange";
+      else {
+          return "green";
+      }
+   })
+    .on("mouseover", function(d) {
+     // console.log(labels[0][d.index].nextSibling.nextSibling);
+      d3.select(labels[0][d.index])
+      .style("visibility", "visible");
+      d3.select(labels[0][d.index].nextSibling)
+      .style("visibility", "visible");
+      d3.select(labels[0][d.index].nextSibling.nextSibling)
+      .style("visibility", "visible");
+    })
+    .on("mouseout", function(d) {
+     d3.select(labels[0][d.index])
+       .style("visibility", "hidden");
+      d3.select(labels[0][d.index].nextSibling)
+      .style("visibility", "hidden");
+      d3.select(labels[0][d.index].nextSibling.nextSibling)
+      .style("visibility", "hidden");
+    })
+    //.on("click", function(d) {
+    
+    .call(force.drag);
+
+//Labels for the group
+  
+  var labels = gnodes.append("text")
+    .text(function(d) { 
+        return ("Network: " + d.name ); 
+    })
+    .attr("class","nodetext")
+    .attr("dx", 0)
+    .attr("dy", ".35em")
+    .style("font-size","5px")
+    .attr("text-anchor", "middle")
+    //.style("fill", "white")
+    .transition()
+    .duration(300)
+    .style("font-size","12px")
+ // .attr("font-family", "sans-serif")
+ // .attr("font-size", "11px")
+    .style("visibility", "hidden"); //hide under hover over the node 
+    
+    
+    
+    gnodes.append("text")
+    .text(function(d) { 
+        return ("Social Engineering Training: " + d.social_eng); 
+    })
+    .attr("class","nodetext")
+    .attr("dx", 0)
+    .attr("dy", ".35em")
+    .style("font-size","5px")
+    .attr("text-anchor", "middle")
+    .attr("transform","translate(0, 12)")
+    //.style("fill", "white")
+    .transition()
+    .duration(300)
+    .style("font-size","12px")
+ // .attr("font-family", "sans-serif")
+ // .attr("font-size", "11px")
+    .style("visibility", "hidden"); //hide under hover over the node 
+    
+        gnodes.append("text")
+    .text(function(d) { 
+        return ("Infected with: " + d.infected_with); 
+    })
+    .attr("class","nodetext")
+    .attr("dx", 0)
+    .attr("dy", ".35em")
+    .style("font-size","5px")
+    .attr("text-anchor", "middle")
+    .attr("transform","translate(0, 24)")
+    //.style("fill", "white")
+    .transition()
+    .duration(300)
+    .style("font-size","12px")
+ // .attr("font-family", "sans-serif")
+ // .attr("font-size", "11px")
+    .style("visibility", "hidden"); //hide under hover over the node
+    //console.log(labels);
+  /*var labels = gnodes.append('text')
+  .attr('x', 0)
+  .attr('y', 30)
+  .attr('class', 'id')
+  .append('tspan')
+  .attr('x', 0)
+  .attr('dy', 5)
+  //.attr("text-anchor", "middle")
+  .style("font-size","15px")
+  .text(function(d) { return "Network: " + d.name; })
+  //.style("visibility", "hidden")
+  
+  .append('tspan')
+  .attr('x', 0)
+  .attr('dy', 5)
+  //.attr("text-anchor", "middle")
+  .style("font-size","15px")
+  .text(function(d) { return "Social Engineering Training: " + d.social_eng; })
+  //.style("visibility", "hidden")
+  
+  .append('tspan')
+  .attr('x', 0)
+  .attr('dy', 5)
+  .attr("class", "test")
+  //.attr("text-anchor", "middle")
+  .style("font-size","15px")
+  .text(function(d) { return " Infected with: " + d.infected_with; })
+  //.style("visibility", "hidden"); */
+
+//Every time the simulation "ticks", this will be called
+  force.on("tick", function() {
+    edges.attr("x1", function(d) { return d.source.x; })
+         .attr("y1", function(d) { return d.source.y; })
+	     .attr("x2", function(d) { return d.target.x; })
+	     .attr("y2", function(d) { return d.target.y; });
+
+    gnodes.attr("transform", function(d) { 
+        temp = 'translate(' + [d.x, d.y] + ')'
+      return 'translate(' + [d.x, d.y] + ')';         
+     })
+  });
+}
+
+function duplicate(dataset)
+{
+    var clone = {
+        nodes: dataset.nodes.slice(0),
+        edges: dataset.edges.slice(0)
+    }
+    
+    return clone;
+}
+
+function generate_custom()
+{
+    var type, graph, num_nodes;
+    
+    $(document).ready(function(){
+    $("#divLevelCustom").empty();
+	newTextBoxDiv = $(document.createElement('div'))
+	     .attr("id", 'TextBoxDiv');
+ 
+	newTextBoxDiv.after().html('<label>Number of nodes' + ' : </label>' +
+	      '<input type="text" name="textbox' + 
+	      '" id="textbox' + '" value="" >');
+ 
+	newTextBoxDiv.appendTo("#divLevelCustom");
+    });
+    
+    topologySelectMenu = $("<select />");
+      $("<option />", {value: -1, 
+                       text: "Select network topology"})
+                       .appendTo(topologySelectMenu);
+      
+      //create option for each node
+      for(var val in topologies)
+      {
+       $("<option />", {value: val, 
+                        text: topologies[val]})
+                        .appendTo(topologySelectMenu);
+      }
+      topologySelectMenu.appendTo("#divLevelCustom");
+      topologySelectMenu.on("change", function(e) {
+          type = this.options[e.target.selectedIndex].text; 
+          numNodes = parseInt($("#textbox").val());
+          graph = generate_graph_data(numNodes, type);
+          generate_graph(graph);
+          
+      });
+}
+
+function generate_graph_data(num_nodes, type)
+{
+
+    var i, j, dataset = {
+        nodes :[],
+        edges :[]
+    }
+
+    if(type == "Line")
+    {
+      for(i = 0; i < num_nodes; i++)
+      {
+          dataset.nodes.push({name: "node " + i, system_type: "W32"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , infected_with: "none"
+                             , adjacent_to: []});
+         if(i == 0)
+           dataset.nodes[i].adjacent_to.push(i+1);
+         else if(i == num_nodes - 1)
+           dataset.nodes[i].adjacent_to.push(i-1);
+         else
+           dataset.nodes[i].adjacent_to.push(i-1, i+1);
+      }
+        
+      for(j = 0; j <  num_nodes - 1; j++)
+        dataset.edges.push({ source: j, target: j + 1 });
+    }
+    else if(type == "Star")
+    {
+      dataset.nodes.push({name: "Central Hub", system_type: "NA"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , infected_with: "none"
+                             , adjacent_to: []});
+       
+      for(i = 0 ; i < num_nodes; i++)
+      {
+          dataset.nodes.push({name: "node " + i, system_type: "W32"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , infected_with: "none"
+                             , adjacent_to: []});
+      }
+      for(j = 1; j <  num_nodes + 1; j++) 
+        dataset.edges.push({ source: j, target: 0 });
+    }
+    else if(type == "Ring")
+    {
+      for(i = 0; i < num_nodes; i++)
+      {
+          dataset.nodes.push({name: "node " + i, system_type: "W32"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , infected_with: "none"
+                             , adjacent_to: []});
+         if(i == 0)
+           dataset.nodes[i].adjacent_to.push(i+1);
+         else if(i == num_nodes - 1)
+           dataset.nodes[i].adjacent_to.push(i-1, 0);
+         else
+           dataset.nodes[i].adjacent_to.push(i-1, i+1);
+      }
+        
+      for(j = 0; j <  num_nodes - 1; j++)
+        dataset.edges.push({ source: j, target: j + 1 });
+      dataset.edges.push({ source: j, target: 0 });
+    }
+    else if(type == "Complete")
+    {
+     
+      for(i = 0; i < num_nodes; i++)
+      {
+          dataset.nodes.push({name: "node " + i, system_type: "W32"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , infected_with: "none"
+                             , adjacent_to: []});    
+      }
+      //n(n-1)/2 nodes in complete graph
+      for(j = 0; j < num_nodes; j++)
+      {
+          for(i = 0; i < num_nodes; i++)
+          {
+            if(i != j)
+                dataset.edges.push({source: j, target: i});
+          }
+      }
+    }
+    
+    return dataset;
+}
+
+function generate_dropdown(dataset, div_location)
+{
+   dataset = duplicate(dataset);
+  //if the user has not set any levels
+  if(!selected) {
+    $(document).ready(function() {
+        
+      wormSelectMenu = $("<select />");
+      $("<option />", {value: -1, 
+                       text: "Select worm"})
+                       .appendTo(wormSelectMenu);
+      
+      //create option for each node
+      for(var val in worms)
+      {
+       $("<option />", {value: val, 
+                        text: worms[val].name})
+                        .appendTo(wormSelectMenu);
+      }
+      wormSelectMenu.appendTo("#" + div_location);
+      wormSelectMenu.on("change", function(e) {
+      worm = this.options[e.target.selectedIndex].text;
+          //create release button
+      $("wormbtn").hide();
+      wormbtn = $("<button/>", {text: "Release Worm", 
+                           id: "wormbtn",
+                           click: function () {          
+                            spawn = spawnWorm(worm);
+                            //infect a random node
+                            gnodes.data()[spawn].infected_with = worm;
+                            //console.log(gnodes.data()[spawn]);
+                            start(duplicate(dataset), worm);
+                            $("#wormbtn").hide();  
+                        }
+                 }).appendTo("#" + div_location);
+       })
+       $("<br />").appendTo("#" + div_location);
+      //create dropdowns for networks
+      networkSelectMenu = $("<select />");
+      $("<option />", {value: -1, 
+                       text: "Please Select Network"})
+                       .appendTo(networkSelectMenu);
+      
+      //create option for each node
+      for(var val in dataset.nodes)
+      {
+       $("<option />", {value: val, 
+                        text: dataset.nodes[val].name})
+                        .appendTo(networkSelectMenu);
+      }
+      networkSelectMenu.appendTo("#" + div_location);
+        
+      //generate the next dropdown
+      networkSelectMenu.on('change', function(e) {
+        console.log(this.options[e.target.selectedIndex].text);
+        
+        socialEngSelectMenu = $("<select />");
+        $("<option />", {value: -1, 
+                         text: "Enable Social Engineering training"})
+                         .appendTo(socialEngSelectMenu);
+        for(var val in bool_params)  
+        {
+        $("<option />", {value: val, 
+                         text: bool_params[val]})
+                         .appendTo(socialEngSelectMenu);
+        }
+
+        socialEngSelectMenu.appendTo("#" + div_location);
+       // console.log(socialEngSelectMenu.val());
+        socialEngSelectMenu.on("change", function(f) {
+            //if not the "Please select" option which is -1
+            if(socialEngSelectMenu.val() >= 0) {
+              dataset.nodes[e.target.selectedIndex - 1].social_eng
+                           = bool_params[f.target.selectedIndex - 1];
+
+               socialEngSelectMenu.remove();
+               //refresh the graph
+               d3.selectAll("svg").remove();
+                generate_graph(dataset);
+            }
+        })
+      });
+    });
+    selected = true;
+  }
+  else {
+      $("#" + div_location).empty();
+      selected = false;
+  }
+}
+
+function start(dataset, worm) 
+{
+  var i = 0;
+  while(i++ < dataset.nodes.length) 
+  {
+     //console.log(stopSimulation);             
+     window.setTimeout(function() {
+       if(stopSimulation) {
+         return;
+       }
+       runSimulation(dataset, worm);
+     }, 500 + i * 3500);
+      
+     window.setTimeout(function() {
+       if(stopSimulation) {
+         return;
+       }
+        d3.selectAll("svg").remove();
+        d3.selectAll(".worm").remove();
+        generate_graph(dataset);
+     }, 4000 + i * 3500);
+  }                      
+}
+    
+var timer = null;
+function onCompletion(interval) {
+
+    function retryIfRunning() {
+        if (force.alpha() != 0) {
+            console.log("HELLO");
+            setTimeout(checkAndRetry, interval); 
+            console.log(force.alpha());}
+        else {
+            console.log("WHY U NO GO HERE");
+            updateInfections();
+        }
+    }
+
+    retryIfRunning();
+}
+
+function checkAndRetry()
+{
+}
+
+//infect a random node
+function spawnWorm(worm)
+{
+    var candidateNodes = [];
+    console.log(worm);
+    for(var i = 0; i < gnodes.data().length; i++)
+    {
+        if(can_infect(gnodes.data()[i], worm)) 
+              candidateNodes.push(i);
+    }
+    
+    console.log(candidateNodes);
+    console.log(candidateNodes[Math.floor((Math.random() 
+                                      * (candidateNodes.length)))]);
+    return candidateNodes[Math.floor((Math.random() 
+                                      * (candidateNodes.length)))];
+}
+/*
+function getInfectableNodes(worm)
+{
+    var i;
+    
+    if(worm == "W32.BORM")
+        for(i = 0; i < gnodes.data().length; i++)
+            if(gnodes.data()[i].intrusion_detect !
+    else if(worm == "W32.BLASTER")
+        
+    else if(worm == "W32.BASIC")
+}*/
+
+function runSimulation(dataset, worm)
+{
+   //needs to update once graph has settled
+   //onCompletion(1000);
+   
+   var i = 0;
+   settleLayout();
+   updateInfections(worm);
+   getWormCoords();
+   console.log(xyCoords);
+    if(xyCoords.length == 0){
+        
+       window.alert("Propogation halted!");
+        return;
+    }
+   createWorm();
+   moveWorm(dataset);
+
+}
+
+function settleLayout()
+{
+  var safety = 0;
+  while(force.alpha() != 0) 
+  {
+     force.tick();
+     if(safety++ > 500) 
+        break;
+  }
+}
+
+//create worms from the infected nodes
+function createWorm() 
+{
+
+  var worm = svg.selectAll(".worm")
+     .data(xyCoords)
+     .enter()
+     .append("circle")
+     .attr("class", "worm")
+     .attr("cx", function(d, i) {
+         console.log(d);
+         return d.sourceX })
+     .attr("cy", function(d) { 
+         return d.sourceY})
+     .attr("r", 4)
+     .style("fill", "black")
+}
+
+//move worm from source to target
+function moveWorm(dataset) 
+{
+ // console.log(xyCoords);
+  stageEnded = false;
+  d3.selectAll(".worm")
+    .transition()
+    .duration(4000)
+    .attr("cx", function(d) {
+        return d.targetX } )
+    .attr("cy", function(d) { 
+        return d.targetY } )
+    .each("end", function(d) { //listen for end of event
+       // gnodes.data()[d.id].infected_with = "W32.BORM";
+        //refresh graph with new values
+        //d3.selectAll("svg").remove();
+       // generate_graph(dataset); 
+        stageEnded = true;});
+   $('.worm').fadeOut(5000); //fade out the worm
+   
+ }
+
+//spawn worm
+//update infections
+//move worm
+//remove svg's
+// (repeat)
+
+//get source (infected nodes) and target (nodes to be infected) coords
+//funciton skipping ahead and infecting before worm transmitted//
+function updateInfections(worm)
+{
+    stopSimulation = true;
+    infections = []; //nodes to infect
+    newMarkedInfections = []; //mark the newly infected nodes to avoid transmitting worms from newly infected nodes within loop
+    
+    //find all nodes reachable from infected ones
+    //update the infection array with these node params
+    for(var i = 0; i < gnodes.data().length; i++)
+    {
+        if(gnodes.data()[i].infected_with != "none") 
+        {
+            //get indexes of already infected nodes
+            newMarkedInfections.push(i);
+            //console.log(newMarkedInfections);
+        }
+    }
+    
+    //for each node in graph, check if in adjacency list of
+    //any of the infected nodes
+    //if so then mark it as infected and get worm coords
+    
+    //for each infected node
+    //check if nodes adjacent are not infected
+    //infect them if so
+    
+    for(var j = 0; j < newMarkedInfections.length; j++)
+    {
+        gnodes.data()[newMarkedInfections[j]]
+              .adjacent_to.forEach(function(element, index) {
+                  if(gnodes.data()[element].infected_with == "none" 
+                     && can_infect(gnodes.data()[element], worm)) {
+                    stopSimulation = false;
+                      can_infect(gnodes.data()[element], worm);
+                    gnodes.data()[element].infected_with = worm;
+                    infections.push({x: gnodes.data()[element].x,
+                                     y: gnodes.data()[element].y,
+                                     infectedByx: 
+                                     gnodes.data()[newMarkedInfections[j]].x,
+                                     infectedByy: 
+                                     gnodes.data()[newMarkedInfections[j]].y,
+                                    });
+                  }
+              });
+    }
+}
+                                   
+                                 
+//get coords for where the worm needs to transmit between
+//infections needs to store node id's of new infections
+function getWormCoords()
+{
+    xyCoords = [];
+    for(var i = 0; i < infections.length; i++)
+    {
+        xyCoords.push({id: i, targetX: infections[i].x
+                     , targetY: infections[i].y
+                     , sourceX: infections[i].infectedByx
+                     , sourceY: infections[i].infectedByy});
+    }
+}
+
+function can_infect(node, worm)
+{
+    //console.log(worm);
+    
+    if(worm == "W32.BLASTER")
+    {
+        return true;
+    }
+    else if(worm == "W32.BORM")
+    {
+        return true;
+    }
+    else (worm == "W32.ROOTATTACK")
+    {
+        
+        if(node.social_eng == " true")
+        {
+            console.log("DA FUK");
+            return false;
+        }
+        else
+            return true;
+    }
+}
+
+
+       
