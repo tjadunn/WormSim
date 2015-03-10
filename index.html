@@ -955,7 +955,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
-                             , active: "true"
+                             , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});
          if(i == 0)
@@ -978,7 +978,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
-                             , active: "true"
+                             , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});    
       }
@@ -1330,13 +1330,15 @@ function updateInfections(worm)
                     for(var k = 0; k < newMarkedInfections.length; k++)
                     {
                       //console.log(infections);
-                      infections.push({x: gnodes.data()[node].x,
-                                       y: gnodes.data()[node].y,
-                                       infectedByx: 
-                                       gnodes.data()[newMarkedInfections[k]].x,
-                                       infectedByy: 
-                                       gnodes.data()[newMarkedInfections[k]].y,
-                                      });
+                      if(gnodes.data()[newMarkedInfections[k]].status 
+                         == "active")
+                        infections.push({x: gnodes.data()[node].x,
+                                         y: gnodes.data()[node].y,
+                                         infectedByx: 
+                                         gnodes.data()[newMarkedInfections[k]].x,
+                                         infectedByy: 
+                                         gnodes.data()[newMarkedInfections[k]].y,
+                                        });
                     }
                     console.log(infections);
                     return;
@@ -1480,36 +1482,6 @@ $(document).ready(function () {
     });
 });
 
-    
-
-
-       
-    
-
-
-       
-    
-
-
-       
-    
-
-
-       
-    
-
-
-       
-
-    
-
-
-       
-
-    
-
-
-       
       </script>
     </body>
 </html>
