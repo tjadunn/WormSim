@@ -48,8 +48,8 @@
 <body>
     <h1 style="font-size:200%"> <center> WormSim</center> </h1> 
     <div id="Info" title="Information">
-        <p>WormSim - A computer worm propogation simulator, enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
-        <p>The basic three levels represent ficticious university mesh networks of varying size, the custom level allows for arbitary configuration of different
+        <p>WormSim - A computer worm propagation simulator, enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
+        <p>The basic three levels represent fictitious university mesh networks of varying size, the custom level allows for arbitrary configuration of different
            topologies and attack types to be used.<p>
     </div>
     <button class="Info">Info</button>
@@ -59,12 +59,19 @@
         <p><font color="red">Represents an incapacitated node.</font> 
         </p>
         <p><font color="orange">Represents a node infected with
-           W32.ILOVEYOU</font>. ILOVEYOU orginated from the Philippines and attacked tens of millions of computers by spreading an  email message with the subject line "ILOVEYOU" and the attachment "LOVE-LETTER-FOR-YOU.txt.vbs". In this case the visual basic extension was hidden, the worm used social engineering to lead users to think it was an ordinary text file, upon opening the script it did damage to local files and propgated itself further by email harvesting.
+           W32.ILOVEYOU.</font> ILOVEYOU attacked tens of millions of computers by spreading an  email message with the subject line "ILOVEYOU" and the attachment "LOVE-LETTER-FOR-YOU.txt.vbs". In this case the visual basic extension was hidden, the worm used social engineering to lead users to think it was an ordinary text file, upon opening the script it did damage to local files and propagated itself further by email harvesting.
         </p>
         <p><font color="purple">Represents a node infected with
-         W32.BLASTER</font> Blaster exploited a vulnerability on windows server 2003, it then opened a UDP port and began to upload its viral payload before looking for new machines to infect.</p>
+         W32.BLASTER.</font> Blaster exploited a vulnerability on windows server 2003, it then opened a UDP port and began to upload its viral payload before looking for new machines to infect.</p>
         <p><font color="brown">Represents a node infected with
-         W32.BORM</font> Borm was among one of the first worms to attack a backdoor compromised system, it made use of a remote administration facility called back orifice to infect targets</p>
+         W32.BORM.</font> Borm was among one of the first worms to attack a backdoor compromised system, it made use of a remote administration facility called back orifice to infect targets.</p>
+        <p><font color="blue">Represents a node infected with W32.SLAMMER. </font> Slammer is a type of worm who's payload is used to carry out DDoS attacks.</p>
+        <p>A<b> Distributed denial of service attack (DDoS)</b>, is an attack carried out by two or more nodes aimed at incapacitating another node.</p>
+        <p>A<b> smurf DDoS </b> is a type of distributed denial of service attack. The smurf is installed on a node via a worms payload, it 
+          then attempts to ping all nodes on the network using a the source address of the infected node, this causes all the computers to respond 
+           to the node a once overwhelming it with traffic.</p>
+        <p><font color="violet">Represents a node infected with W32.STORM. </font> Storm is a type of worm used to carry out distributed denial of service attacks by creating a (storm) botnet <p>
+        <p>A<b> storm botnet </b> is a remotely controlled network of computers that are infected with W32.STORM, it can be used to carry out large scale DDoS attacks by targeting nodes reachable from those infected with W32.STORM. </p>
         <p><b>Honey pots </b>are strategic defence mechanisms which lure in worms by redirecting their target locators from compromised nodes, minimising network damage. </p>
         <p><b> Intrusion detection systems</b> monitor network traffic for suspicious activity, if a suspicious packet is found it is dropped.</p>
     </div>
