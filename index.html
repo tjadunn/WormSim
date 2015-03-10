@@ -473,7 +473,6 @@ function generate_graph(dataset)
           return "green";
    })
     .on("mouseover", function(d) {
-     // console.log(labels[0][d.index].nextSibling.nextSibling);
       if(d.name != "Central Hub") {
         d3.select(labels[0][d.index])
         .style("visibility", "visible");
@@ -482,6 +481,10 @@ function generate_graph(dataset)
         d3.select(labels[0][d.index].nextSibling.nextSibling)
         .style("visibility", "visible");
         d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling)
+        .style("visibility", "visible");
+        d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling.nextSibling)
+        .style("visibility", "visible");
+        d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling.nextSibling.nextSibling)
         .style("visibility", "visible");
       }
         else {
@@ -498,6 +501,10 @@ function generate_graph(dataset)
       .style("visibility", "hidden");
       d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling)
       .style("visibility", "hidden");
+      d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling.nextSibling)
+        .style("visibility", "hidden");
+      d3.select(labels[0][d.index].nextSibling.nextSibling.nextSibling.nextSibling.nextSibling)
+        .style("visibility", "hidden");
     })
     //.on("click", function(d) {
     
@@ -561,7 +568,7 @@ function generate_graph(dataset)
     
     gnodes.append("text")
     .text(function(d) { 
-        return ("Infected with: " + d.infected_with); 
+        return ("Intrusion detection: " + d.intrusion_detect); 
     })
     .attr("class","nodetext")
     .attr("dx", 0)
@@ -577,6 +584,45 @@ function generate_graph(dataset)
  // .attr("font-size", "11px")
     .style("visibility", "hidden"); //hide under hover over the node
     //console.log(labels);
+
+    gnodes.append("text")
+    .text(function(d) { 
+        return ("Software up to date: " + d.software_uptodate); 
+    })
+    .attr("class","nodetext")
+    .attr("dx", 0)
+    .attr("dy", ".35em")
+    .style("font-size","5px")
+    .attr("text-anchor", "middle")
+    .attr("transform","translate(0, 72)")
+    //.style("fill", "white")
+    .transition()
+    .duration(300)
+    .style("font-size","12px")
+ // .attr("font-family", "sans-serif")
+ // .attr("font-size", "11px")
+    .style("visibility", "hidden"); //hide under hover over the node
+    //console.log(labels);
+
+    gnodes.append("text")
+    .text(function(d) { 
+        return ("Infected with: " + d.infected_with); 
+    })
+    .attr("class","nodetext")
+    .attr("dx", 0)
+    .attr("dy", ".35em")
+    .style("font-size","5px")
+    .attr("text-anchor", "middle")
+    .attr("transform","translate(0, 84)")
+    //.style("fill", "white")
+    .transition()
+    .duration(300)
+    .style("font-size","12px")
+ // .attr("font-family", "sans-serif")
+ // .attr("font-size", "11px")
+    .style("visibility", "hidden"); //hide under hover over the node
+    //console.log(labels);
+
 
 //Every time the simulation "ticks", this will be called
   force.on("tick", function() {
@@ -817,7 +863,7 @@ function updateSmurf()
                  .splice(val.index, 1);
             }*/
         gnodes.data()[spawn].infected_with 
-               = "W32.SLAMMER - Node: Incapacitated";
+               = "W32.SLAMMER";
         gnodes.data()[spawn].status = "incapacitated";
         generate_graph(smurfData);
         return;
@@ -878,6 +924,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , infected_with: "none"
                              , adjacent_to: []});
          if(i == 0)
@@ -897,6 +944,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});
@@ -907,6 +955,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});
@@ -931,6 +980,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});
@@ -960,6 +1010,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});
@@ -983,6 +1034,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , software_uptodate: " false"
                              , status: "active"
                              , infected_with: "none"
                              , adjacent_to: []});    
@@ -1104,34 +1156,64 @@ function generate_dropdown(dataset, div_location)
                     if(honeypotSelectMenu.val() >= 0) {
                       dataset.nodes[e.target.selectedIndex - 1].honeypot
                              = bool_params[g.target.selectedIndex - 1];
+                          
+                               
+                    //create honeypot select menu
+                     intrusionDetectMenu = $("<select />");
+                     $("<option />", {value: -1, 
+                                       text: "Enable intrusion detection"})
+                                       .appendTo(intrusionDetectMenu);  
 
 
+                     for(var val in bool_params)  
+                     {
+                      $("<option />", {value: val, 
+                                       text: bool_params[val]})
+                                       .appendTo(intrusionDetectMenu);
+                     }         
+                     intrusionDetectMenu.appendTo("#" + div_location);
+                     intrusionDetectMenu.on("change", function(h) {
+                       if(intrusionDetectMenu.val() >= 0) {
+                        dataset.nodes[e.target.selectedIndex - 1]
+                               .intrusion_detect
+                             = bool_params[h.target.selectedIndex - 1];
 
+                     softwareMenu = $("<select />");
+                     $("<option />", {value: -1, 
+                                       text: "Software up to date?"})
+                                       .appendTo(softwareMenu);  
+                     for(var val in bool_params)  
+                     {
+                      $("<option />", {value: val, 
+                                       text: bool_params[val]})
+                                       .appendTo(softwareMenu);
+                     }  
+                     softwareMenu.appendTo("#" + div_location);
+                     softwareMenu.on("change", function(i) {
+                     if(softwareMenu.val() >= 0) {
+                        dataset.nodes[e.target.selectedIndex - 1]
+                         .software_uptodate
+                             = bool_params[i.target.selectedIndex - 1]; 
 
-
-                    socialEngSelectMenu.remove();
-                    honeypotSelectMenu.remove();
-                    //refresh graph
-                    d3.selectAll("svg").remove();
-                    generate_graph(dataset);
+                        intrusionDetectMenu.remove();
+                        softwareMenu.remove();
+                        socialEngSelectMenu.remove();
+                        honeypotSelectMenu.remove();
+                        //refresh graph
+                        d3.selectAll("svg").remove();
+                        generate_graph(dataset); 
+                     } });
                     }
               })
-          }               
+          }           
+              });
                //refresh the graph
                d3.selectAll("svg").remove();
                generate_graph(dataset);
-               
-
-        })
-      });
-    });
-    selected = true;
- // }
-  /*else {
-      $("#" + div_location).empty();
-      generate_graph(dataset);
-      selected = false;
-  }*/
+        }
+      })
+    })
+    })
 }
 
 function start(dataset, worm) 
@@ -1437,13 +1519,15 @@ function can_infect(node, worm)
         else
           return true;
     }
-    else (worm == "ILOVEYOU")
+    else if(worm == "W32.ILOVEYOU")
     {
         if(node.social_eng == " true")
             return false;
         else
             return true;
     }
+    else
+      return true;
 }
 
 function honeypot_adjacent(node)
