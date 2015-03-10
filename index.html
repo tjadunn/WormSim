@@ -46,8 +46,11 @@
 }
 </style>
 <body>
+    <h1 style="font-size:200%"> <center> WormSim</center> </h1> 
     <div id="Info" title="Information">
         <p>WormSim - A computer worm propogation simulator, enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
+        <p>The basic three levels represent ficticious university mesh networks of varying size, the custom level allows for arbitary configuration of different
+           topologies and attack types to be used.<p>
     </div>
     <button class="Info">Info</button>
     <div id="Legend" title="Legend">
@@ -56,13 +59,12 @@
         <p><font color="red">Represents an incapacitated node.</font> 
         </p>
         <p><font color="orange">Represents a node infected with
-           W32.ROOTATTACK.</font>
+           W32.ILOVEYOU</font>. ILOVEYOU orginated from the Philippines and attacked tens of millions of computers by spreading an  email message with the subject line "ILOVEYOU" and the attachment "LOVE-LETTER-FOR-YOU.txt.vbs". In this case the visual basic extension was hidden, the worm used social engineering to lead users to think it was an ordinary text file, upon opening the script it did damage to local files and propgated itself further by email harvesting.
         </p>
         <p><font color="purple">Represents a node infected with
          W32.BLASTER</font> Blaster exploited a vulnerability on windows server 2003, it then opened a UDP port and began to upload its viral payload before looking for new machines to infect.</p>
         <p><font color="brown">Represents a node infected with
          W32.BORM</font> Borm was among one of the first worms to attack a backdoor compromised system, it made use of a remote administration facility called back orifice to infect targets</p>
-    </div>
     </div>
     <button class="Legend">Legend</button>
     <br>
@@ -79,9 +81,11 @@
     <button onclick="levelCustom()">Custom</button>
     <div id="divLevelCustom"></div>
     <br>
+    <div id="commentary"></div>
 </body>
       <script type="text/javascript">
 			//Width and height
+//vars to hold dropdown menu data
 var networkSelectMenu;
 var socialEngSelectMenu;
 var honeypotSelectMenu;
@@ -91,7 +95,7 @@ var nodeTextBox;
 var topologySelectMenu;
 var infectionMethodMenu;
 var attackSelectMenu;
-
+var botnetMinMenu;
 
 //dfs counter and max tracker
 var counter = 0;
@@ -113,8 +117,8 @@ var force;
 //var for svg elements
 var svg;
 
-var w = 500;
-var h = 350;
+var w = 850;
+var h = 650;
 
 var spawn; //initial outbreak node
 var xyCoords = []; //worm xy coords
@@ -145,7 +149,7 @@ var worms = [
     , packet_types: ["TCP"], ports_used: [135] },
     { name: "W32.BLASTER", techniques: ["BUFF_OVERFLOW"]
      , packet_types: ["TCP", "UDP"], ports_used: [135, 139, 4444] },
-    { name: "W32.ROOTATTACK", techniques: ["SOCIAL_ENG"]
+    { name: "W32.ILOVEYOU", techniques: ["SOCIAL_ENG"]
      , packet_types: ["TCP", "UDP"], ports_used: [22] }
     ];
 
@@ -248,7 +252,7 @@ var dataset3 = {
              , intrusion_detect: " false", honeypot: " false"
              , status: "active", infected_with: "none"
              , adjacent_to: [1, 9, 10]},
-    { name: "University of York", system_type: "W32", social_eng: " true" 
+    { name: "University of York", system_type: "W32", social_eng: " false" 
              , intrusion_detect: " false", honeypot: " false"
              , status: "active" , infected_with: "none", adjacent_to: [8, 10]},
     { name: "London School of Economics", system_type: "W32"
@@ -256,7 +260,7 @@ var dataset3 = {
              , intrusion_detect: " false", honeypot: " false"
              , status: "active" , infected_with: "none"
              , adjacent_to: [5, 6, 8, 9]},
-    { name: "Oxford University", system_type: "W32", social_eng: " true"
+    { name: "Oxford University", system_type: "W32", social_eng: " false"
              , intrusion_detect: " false", honeypot: " false"
              , status: "active", infected_with: "none", adjacent_to: [0, 2]},
     { name: "Cambridge University", system_type: "W32", social_eng: " false"
@@ -311,6 +315,11 @@ var levelOne = function()
   d3.selectAll("svg").remove(); //remove all the svg elements for new graph
   generate_dropdown(dataset1, "divLevelOne", diameter);
   generate_graph(dataset1);
+  $("#commentary").fadeOut(function() {
+    $(this).text("Level one generated").fadeIn(2000);
+    $(this).text("Level one generated").fadeOut(2000);
+  });
+  //$("#commentary").empty();
 }
 
 var levelTwo = function()
@@ -322,7 +331,11 @@ var levelTwo = function()
   d3.selectAll("svg").remove();
   generate_dropdown(dataset2, "divLevelTwo");
   generate_graph(dataset2);
-  
+  $("#commentary").fadeOut(function() {
+    $(this).text("Level two generated").fadeIn(2000);
+    $(this).text("Level two generated").fadeOut(2000);
+  });
+  //$("#commentary").empty();
 } 
 
 var levelThree = function()
@@ -333,6 +346,10 @@ var levelThree = function()
   d3.selectAll("svg").remove();
   generate_dropdown(dataset3, "divLevelThree");
   generate_graph(dataset3);
+  $("#commentary").fadeOut(function() {
+    $(this).text("Level three generated").fadeIn(2000);
+    $(this).text("Level three generated").fadeOut(2000);
+  });
 }
 
 var levelCustom = function()
@@ -431,7 +448,7 @@ function generate_graph(dataset)
             return "brown";
         else if(d.infected_with == "W32.BLASTER")
             return "purple";
-        else if(d.infected_with == "W32.ROOTATTACK")
+        else if(d.infected_with == "W32.ILOVEYOU")
             return "orange";
         else if(d.infected_with == "W32.SLAMMER")
             return "blue";
@@ -492,6 +509,7 @@ function generate_graph(dataset)
     .attr("dy", ".35em")
     .style("font-size","5px")
     .attr("text-anchor", "middle")
+    .attr("transform","translate(0, 24)")
     //.style("fill", "white")
     .transition()
     .duration(300)
@@ -509,7 +527,7 @@ function generate_graph(dataset)
     .attr("dy", ".35em")
     .style("font-size","5px")
     .attr("text-anchor", "middle")
-    .attr("transform","translate(0, 12)")
+    .attr("transform","translate(0, 36)")
     //.style("fill", "white")
     .transition()
     .duration(300)
@@ -527,7 +545,7 @@ function generate_graph(dataset)
     .attr("dy", ".35em")
     .style("font-size","5px")
     .attr("text-anchor", "middle")
-    .attr("transform","translate(0, 24)")
+    .attr("transform","translate(0, 48)")
     //.style("fill", "white")
     .transition()
     .duration(300)
@@ -545,7 +563,7 @@ function generate_graph(dataset)
     .attr("dy", ".35em")
     .style("font-size","5px")
     .attr("text-anchor", "middle")
-    .attr("transform","translate(0, 36)")
+    .attr("transform","translate(0, 60)")
     //.style("fill", "white")
     .transition()
     .duration(300)
@@ -649,17 +667,53 @@ function generate_custom()
                //remove edge between spawn and hub to indicate incapacity
              //generate_dropdown(graph_data, "divLevelCustom")
                console.log("Smurf Graph data", graph_data);
+               $("#commentary").fadeOut(function() {
+                 $(this).text("Smurf DDoS attack running on " + type 
+                              + " network with " + numNodes 
+                              + " nodes").fadeIn(2000);
+                 $(this).text("Smurf DDoS attack running on " + type 
+                              + " network with " + numNodes 
+                              + " nodes").fadeOut(2000);
+                });
                generate_graph(graph_data);
                start_smurf_simulation(graph_data);
            }
            else if(this.options[f.target.selectedIndex].text 
                    == "Botnet.Storm") {
-               console.log("Storm: Graph data", graph_data);
+           botnetMinMenu = $("<select />");
+           $("<option />", {value: -1, 
+                            text: "Select minimum nodes required" 
+                                   + " for node incapacitation"})
+                            .appendTo(botnetMinMenu);
+            for(var i = 1; i < numNodes; i++)
+            {
+             $("<option />", {value: i, 
+                             text: i})
+                             .appendTo(botnetMinMenu);
+             }
+             botnetMinMenu.appendTo("#divLevelCustom");
+             botnetMinMenu.on("change", function(g) {
+             botnetMin = parseInt(this.options[g.target.selectedIndex].text)
+             $("#commentary").fadeOut(function() {
+               $(this).text("Storm botnet running on " + type 
+                            + " network with " + numNodes 
+                            + " nodes" + " incapacitation minimum " 
+                            + botnetMin.toString()).fadeIn(2000);
+               $(this).text("Storm botnet running on " + type 
+                            + " network with " + " incapacitation minimum " 
+                            + botnetMin.toString()).fadeOut(2000);
+              });
                generate_graph(graph_data);
-               start_storm_simulation(graph_data);
+                 start_storm_simulation(graph_data); });
            }
            else 
            {
+             $("#commentary").fadeOut(function() {
+               $(this).text(type + " Network generated with " 
+                                 + numNodes + " nodes").fadeIn(2000);
+               $(this).text(type + " Network generated with " 
+                                 + numNodes + " nodes").fadeOut(2000);
+            });
              generate_dropdown(graph_data, "divLevelCustom")
              generate_graph(graph_data);
            } 
@@ -669,9 +723,19 @@ function generate_custom()
 
 function start_storm_simulation(dataset)
 {
+ 
     spawn = spawnWorm("W32.STORM");
     gnodes.data()[spawn].infected_with = "W32.STORM";
-    botnetMin = 4;
+    window.setTimeout(function() {
+        $("#commentary").fadeOut(function() {
+            console.log(gnodes.data()[spawn].name);
+          $(this).text("Node: " + (spawn)
+                       + " infected with W32.STORM!").fadeIn(2000);
+          $(this).text("Node: " + (spawn)
+                       + " infected with W32.STORM!").fadeOut(2000);
+        });
+    }, 2000);
+    //botnetMin = 4;
     console.log(dataset);
     start(dataset, "W32.STORM");
 }
@@ -683,6 +747,15 @@ function start_smurf_simulation(dataset)
   console.log("start_smurf(): smurfdata, ", smurfData);
   //infect a random node
   gnodes.data()[spawn].infected_with = "W32.SLAMMER";
+  window.setTimeout(function() {
+        $("#commentary").fadeOut(function() {
+            console.log(gnodes.data()[spawn].name);
+          $(this).text("Node: " + (spawn - 1)
+                       + " infected with W32.SLAMMER!").fadeIn(2000);
+          $(this).text("Node: " + (spawn - 1)
+                       + " infected with W32.SLAMMER!").fadeOut(2000);
+        });
+    }, 2000);
   console.log("start_smurf(): spawn node ", gnodes.data()[spawn]);
   start(smurfData, "W32.SLAMMER"); 
 }
@@ -882,6 +955,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , active: "true"
                              , infected_with: "none"
                              , adjacent_to: []});
          if(i == 0)
@@ -904,6 +978,7 @@ function generate_graph_data(num_nodes, type)
                              , social_eng: "false"
                              , intrusion_detect: " false"
                              , honeypot: " false"
+                             , active: "true"
                              , infected_with: "none"
                              , adjacent_to: []});    
       }
@@ -928,7 +1003,7 @@ function generate_dropdown(dataset, div_location)
 {
   // dataset = duplicate(dataset);
   //if the user has not set any levels
-  if(!selected) {
+ // if(!selected) {
     $(document).ready(function() {
         
       wormSelectMenu = $("<select />");
@@ -954,9 +1029,17 @@ function generate_dropdown(dataset, div_location)
                             spawn = spawnWorm(worm);
                             //infect a random node
                             gnodes.data()[spawn].infected_with = worm;
-                            //console.log(gnodes.data()[spawn]);
+                            window.setTimeout(function() {
+                              $("#commentary").fadeOut(function() {
+                                $(this).text((gnodes.data()[spawn].name) 
+                                   .concat(" infected with ") + worm).fadeIn(2000);
+                                $(this).text((gnodes.data()[spawn].name) 
+                                   .concat(" infected with ") + worm).fadeOut(2000);
+                              });
+                            }, 2000);
                             start(dataset, worm);
-                            $("#wormbtn").hide();  
+                            $("#wormbtn").hide();
+                            $("#" + div_location).empty();
                         }
                  }).appendTo("#" + div_location);
        })
@@ -1027,16 +1110,18 @@ function generate_dropdown(dataset, div_location)
                //refresh the graph
                d3.selectAll("svg").remove();
                generate_graph(dataset);
+               
 
         })
       });
     });
     selected = true;
-  }
-  else {
+ // }
+  /*else {
       $("#" + div_location).empty();
+      generate_graph(dataset);
       selected = false;
-  }
+  }*/
 }
 
 function start(dataset, worm) 
@@ -1268,7 +1353,10 @@ function updateInfections(worm)
         //console.log(gnodes.data()[newMarkedInfections[j]]);
         if((honeypots = honeypot_adjacent(gnodes
                         .data()[newMarkedInfections[j]])).length > 0) {
-            console.log("Honeypot adjacent!", honeypots.length);
+            $("#commentary").fadeOut(function() {
+              $(this).text("Honeypot adjacent!").fadeIn(2000);
+              $(this).text("Honeypot adjacent!").fadeOut(2000);
+            });
             for(var i = 0; i < honeypots.length; i++) {
                 stopSimulation = false;
                 gnodes.data()[honeypots[i]].infected_with = worm;
@@ -1331,14 +1419,10 @@ function can_infect(node, worm)
     {
         return true;
     }
-    else (worm == "W32.ROOTATTACK")
+    else (worm == "ILOVEYOU")
     {
-        
         if(node.social_eng == " true")
-        {
-            console.log("DA FUK");
             return false;
-        }
         else
             return true;
     }
@@ -1396,6 +1480,10 @@ $(document).ready(function () {
     });
 });
 
+    
+
+
+       
     
 
 
