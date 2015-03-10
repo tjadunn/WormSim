@@ -97,6 +97,7 @@ var attackSelectMenu;
 var counter = 0;
 var max = 0;
 
+var diameter;
 var smurf = false;
 var star = false;
 var selected = false;
@@ -118,11 +119,15 @@ var h = 350;
 var spawn; //initial outbreak node
 var xyCoords = []; //worm xy coords
 var infections = [];
+var newMarkedInfections = [];
 var infected = []; //infect node indexes
 var honeypots = []; //honeypot nodes
 var visited = [];
 
 var smurfData = {};
+
+var numInfections = 0;
+var botnetMin; //minimum number of nots req for storm botnet to incapacitate node
 
 var node_params = {
     social_eng: false,
@@ -131,7 +136,7 @@ var node_params = {
 };
 
 var bool_params = [" true", " false"];
-var attacks = ["Worm", "DDoS.Smurf"];
+var attacks = ["Worm", "DDoS.Smurf", "Botnet.Storm"];
 
 var topologies = ["Line", "Star", "Complete", "Ring", "Mesh", "Hybrid"];
 
@@ -299,16 +304,18 @@ var colors = d3.scale.category10();
 //need to make copys of datasets for complete refresh
 var levelOne = function()
 {
+  diameter = 2;
   $("#divLevelTwo").empty();
   $("#divLevelThree").empty();
   $("#divLevelCustom").empty();
   d3.selectAll("svg").remove(); //remove all the svg elements for new graph
-  generate_dropdown(dataset1, "divLevelOne");
+  generate_dropdown(dataset1, "divLevelOne", diameter);
   generate_graph(dataset1);
 }
 
 var levelTwo = function()
 {
+  diameter = 5;
   $("#divLevelOne").empty();
   $("#divLevelThree").empty();
   $("#divLevelCustom").empty();
@@ -373,7 +380,7 @@ function generate_graph(dataset)
     .links(dataset.edges)
     .size([w, h])
     .linkDistance([100])
-    .charge([-300])
+    .charge([-500])
     .start()
     .on("end", function() {
       converged = true;
@@ -414,7 +421,12 @@ function generate_graph(dataset)
   .attr("class", "node")
   .attr("r", 10)
   .style("fill", function(d) {
+      console.log(d.infected_with.slice(d.length - 13, d.length));
       if(d.name != "Central Hub") {
+          console.log(d.status);
+        if(d.status == "incapacitated")
+            return "red";
+          else{
         if(d.infected_with == "W32.BORM") 
             return "brown";
         else if(d.infected_with == "W32.BLASTER")
@@ -423,11 +435,17 @@ function generate_graph(dataset)
             return "orange";
         else if(d.infected_with == "W32.SLAMMER")
             return "blue";
-          else if(d.infected_with == "W32.SLAMMER - Node: Incapacitated")
-            return "red";
+        else if(d.infected_with == "W32.STORM")
+            return "violet";
+        else if(d.infected_with.slice(d.length - 13, d.length) 
+                == "Incapacitated")
+            return red;
+       /* else if(d.infected_with == "W32.SLAMMER - Node: Incapacitated")
+            return "red";*/
         else {
           return "green";
         }
+          }
       }
       else
           return "green";
@@ -609,7 +627,6 @@ function generate_custom()
           type = this.options[e.target.selectedIndex].text; 
           numNodes = parseInt($("#textbox").val());
           graph_data = generate_graph_data(numNodes, type);
-          
           attackSelectMenu = $("<select />");
            $("<option />", {value: -1, 
                             text: "Select worm/attack method"})
@@ -631,10 +648,16 @@ function generate_custom()
                //run backwards to remove initial spawned node
                //remove edge between spawn and hub to indicate incapacity
              //generate_dropdown(graph_data, "divLevelCustom")
-               console.log("Graph data", graph_data);
+               console.log("Smurf Graph data", graph_data);
                generate_graph(graph_data);
                start_smurf_simulation(graph_data);
-               }
+           }
+           else if(this.options[f.target.selectedIndex].text 
+                   == "Botnet.Storm") {
+               console.log("Storm: Graph data", graph_data);
+               generate_graph(graph_data);
+               start_storm_simulation(graph_data);
+           }
            else 
            {
              generate_dropdown(graph_data, "divLevelCustom")
@@ -644,11 +667,20 @@ function generate_custom()
       });
 }
 
+function start_storm_simulation(dataset)
+{
+    spawn = spawnWorm("W32.STORM");
+    gnodes.data()[spawn].infected_with = "W32.STORM";
+    botnetMin = 4;
+    console.log(dataset);
+    start(dataset, "W32.STORM");
+}
+
 function start_smurf_simulation(dataset)
 {
   spawn = spawnWorm("W32.SLAMMER");
   smurfData = dataset;//duplicate(dataset);
-    console.log("start_smurf(): smurfdata, ", smurfData);
+  console.log("start_smurf(): smurfdata, ", smurfData);
   //infect a random node
   gnodes.data()[spawn].infected_with = "W32.SLAMMER";
   console.log("start_smurf(): spawn node ", gnodes.data()[spawn]);
@@ -657,7 +689,7 @@ function start_smurf_simulation(dataset)
 
 function updateSmurf()
 {
-gnodes.data()[0].infected_with = "none"; //reset so can propgate backwards
+  gnodes.data()[0].infected_with = "none"; //reset so can propgate backwards
     for(var i = 0; i < gnodes.data().length; i++) {
       if(gnodes.data()[i].infected_with == "W32.SLAMMER" && i != spawn)
         infections.push({x: gnodes.data()[0].x,
@@ -708,6 +740,7 @@ gnodes.data()[0].infected_with = "none"; //reset so can propgate backwards
             }*/
         gnodes.data()[spawn].infected_with 
                = "W32.SLAMMER - Node: Incapacitated";
+        gnodes.data()[spawn].status = "incapacitated";
         generate_graph(smurfData);
         return;
      }, 10500);
@@ -737,8 +770,7 @@ function dfs_max_reachability()
 {
     counter = 0;
     max = 0;
-    for(var i = 0; i < gnodes.data().length; i++)
-        visited[i] = "n";
+
     
     for(var j = 0; j < gnodes.data().length; j++) {
      for(var i = 0; i < gnodes.data().length; i++)
@@ -810,6 +842,38 @@ function generate_graph_data(num_nodes, type)
       }
         console.log("gen_graph_data(): dataset ", dataset);
     }
+    else if(type == "Mesh")
+    {
+      var randLength;
+      var randNode;
+        
+      for(i = 0 ; i < num_nodes; i++)
+      {
+          dataset.nodes.push({name: "node " + i, system_type: "W32"
+                             , social_eng: "false"
+                             , intrusion_detect: " false"
+                             , honeypot: " false"
+                             , status: "active"
+                             , infected_with: "none"
+                             , adjacent_to: []});
+      }
+      for(j = 0; j < num_nodes; j++)
+      {
+          randLength = Math.floor((Math.random() 
+                                      * (num_nodes/2)) + 1); //cant be 0
+         // console.log("Mesh:", randLength);
+          for(var k = 0; k < randLength; k++)
+          {
+              randNode = Math.floor((Math.random() 
+                                      * (num_nodes)));
+              console.log("Node:", randNode);
+              dataset.nodes[j].adjacent_to.push(randNode);
+              dataset.edges.push({ source: j, target: randNode });
+          }
+          
+      }
+        console.log(dataset);
+    }
     else if(type == "Ring")
     {
       for(i = 0; i < num_nodes; i++)
@@ -821,7 +885,7 @@ function generate_graph_data(num_nodes, type)
                              , infected_with: "none"
                              , adjacent_to: []});
          if(i == 0)
-           dataset.nodes[i].adjacent_to.push(i+1);
+           dataset.nodes[i].adjacent_to.push(i+1, num_nodes - 1);
          else if(i == num_nodes - 1)
            dataset.nodes[i].adjacent_to.push(i-1, 0);
          else
@@ -980,7 +1044,7 @@ function start(dataset, worm)
   var i = 0;
   //i++ < maximum number of steps req to reach any node from target using    shortest path
   dfs_max_reachability();
-  while(i++ < max + 1) 
+  while(i++ < dataset.nodes.length) 
   {
      //console.log(stopSimulation);             
      window.setTimeout(function() {
@@ -1059,10 +1123,10 @@ function runSimulation(dataset, worm)
         updateSmurf();
         return;
     }
-    else if(xyCoords.length == 0) {
+    //else if(xyCoords.length == 0) {
        //console.log(gnodes.data()[0]);
-       window.alert("Propogation halted!");
-    }
+     //  window.alert("Propogation halted!");
+  //  }
    createWorm();
    moveWorm(dataset);
 
@@ -1129,10 +1193,13 @@ function moveWorm(dataset)
 //funciton skipping ahead and infecting before worm transmitted//
 function updateInfections(worm)
 {
+    var adjLength, node;
     honeypots = [];
     stopSimulation = true;
     infections = []; //nodes to infect
-    newMarkedInfections = []; //mark the newly infected nodes to avoid transmitting worms from newly infected nodes within loop
+   
+   if(worm != "W32.STORM")
+       newMarkedInfections = []; //mark the newly infected nodes to avoid transmitting worms from newly infected nodes within loop
     
     //find all nodes reachable from infected ones
     //update the infection array with these node params
@@ -1155,6 +1222,46 @@ function updateInfections(worm)
     //check if nodes adjacent are not infected
     //infect them if so
     
+    if(worm == "W32.STORM" && newMarkedInfections.length > botnetMin) //does not follow normal propogation 
+    {
+        for(var j = 0; j < newMarkedInfections.length; j++)
+        {
+            //for all of the infected nodes, find a node adjacent to one
+            //if can infect it, then infect it from all the other nodes
+            //incapacitate it but also infect it
+            //continue until all nodes incapacitated or infected
+            //console.log("Botnet loop",newMarkedInfections);
+            adjLength = gnodes.data()[newMarkedInfections[j]]
+              .adjacent_to.length;
+            for(var i = 0; i < adjLength; i++)
+            {
+            node = gnodes.data()[newMarkedInfections[j]]
+              .adjacent_to[i];
+                  if(gnodes.data()[node].infected_with == "none" 
+                     && can_infect(gnodes.data()[node], worm)) {
+                    stopSimulation = false;
+                    gnodes.data()[node].infected_with = worm;
+                    gnodes.data()[node].status = "incapacitated";
+                    for(var k = 0; k < newMarkedInfections.length; k++)
+                    {
+                      //console.log(infections);
+                      infections.push({x: gnodes.data()[node].x,
+                                       y: gnodes.data()[node].y,
+                                       infectedByx: 
+                                       gnodes.data()[newMarkedInfections[k]].x,
+                                       infectedByy: 
+                                       gnodes.data()[newMarkedInfections[k]].y,
+                                      });
+                    }
+                    console.log(infections);
+                    return;
+                  }
+                    
+                  }
+             
+        }
+    }
+    else {
     for(var j = 0; j < newMarkedInfections.length; j++)
     {
         //check for honeypots, ******not updating graph????*****
@@ -1176,7 +1283,7 @@ function updateInfections(worm)
             }
             honeypots = [];
         }
-        else{
+        else {
         gnodes.data()[newMarkedInfections[j]]
               .adjacent_to.forEach(function(element, index) {
                   if(gnodes.data()[element].infected_with == "none" 
@@ -1192,6 +1299,7 @@ function updateInfections(worm)
                                     });
                   }
               });
+    }
     }
     }
 }
@@ -1288,6 +1396,14 @@ $(document).ready(function () {
     });
 });
 
+    
+
+
+       
+    
+
+
+       
     
 
 
