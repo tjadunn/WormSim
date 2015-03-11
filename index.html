@@ -321,6 +321,7 @@ var colors = d3.scale.category10();
 var levelOne = function()
 {
   diameter = 2;
+  $("#divLevelOne").empty();
   $("#divLevelTwo").empty();
   $("#divLevelThree").empty();
   $("#divLevelCustom").empty();
@@ -338,6 +339,7 @@ var levelTwo = function()
 {
   diameter = 5;
   $("#divLevelOne").empty();
+  $("#divLevelTwo").empty();
   $("#divLevelThree").empty();
   $("#divLevelCustom").empty();
   d3.selectAll("svg").remove();
@@ -354,6 +356,7 @@ var levelThree = function()
 {
   $("#divLevelOne").empty();
   $("#divLevelTwo").empty();
+  $("#divLevelThree").empty();
   $("#divLevelCustom").empty();
   d3.selectAll("svg").remove();
   generate_dropdown(dataset3, "divLevelThree");
