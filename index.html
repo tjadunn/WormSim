@@ -48,7 +48,7 @@
 <body>
     <h1 style="font-size:200%"> <center> WormSim</center> </h1> 
     <div id="Info" title="Information">
-        <p>WormSim - A computer worm propagation simulator, enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
+        <p>WormSim - A computer worm propagation simulator; enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
         <p>The basic three levels represent fictitious university mesh networks of varying size, the custom level allows for arbitrary configuration of different
            topologies and attack types to be used.<p>
     </div>
@@ -69,7 +69,7 @@
         <p>A<b> Distributed denial of service attack (DDoS)</b>, is an attack carried out by two or more nodes aimed at incapacitating another node.</p>
         <p>A<b> smurf DDoS </b> is a type of distributed denial of service attack. The smurf is installed on a node via a worms payload, it 
           then attempts to ping all nodes on the network using a the source address of the infected node, this causes all the computers to respond 
-           to the node a once overwhelming it with traffic.</p>
+           to the node at once overwhelming it with traffic.</p>
         <p><font color="violet">Represents a node infected with W32.STORM. </font> Storm is a type of worm used to carry out distributed denial of service attacks by creating a (storm) botnet <p>
         <p>A<b> storm botnet </b> is a remotely controlled network of computers that are infected with W32.STORM, it can be used to carry out large scale DDoS attacks by targeting nodes reachable from those infected with W32.STORM. </p>
         <p><b>Honey pots </b>are strategic defence mechanisms which lure in worms by redirecting their target locators from compromised nodes, minimising network damage. </p>
@@ -316,7 +316,7 @@ var dataset3 = {
 
  //Initialize a default force layout, using the nodes and edges in dataset
 var colors = d3.scale.category10();
-
+//clone var newObject = jQuery.extend(true, {}, dataset);
 //need to make copys of datasets for complete refresh
 var levelOne = function()
 {
@@ -1517,14 +1517,14 @@ function can_infect(node, worm)
     
     if(worm == "W32.BLASTER")
     {
-        if(node.software_uptodate == " true")
+        if(node.intrusion_detect == " true")
           return false;
         else
           return true;
     }
     else if(worm == "W32.BORM")
     {
-        if(node.intrusion_detect == " true")
+        if(node.software_uptodate == " true")
             return false;
         else
           return true;
