@@ -1564,11 +1564,12 @@ $(document).ready(function () {
         buttons: {
             Close: function () {
                 $(this).dialog("close");
-                $("#Info").remove();
+                $("#Info").hide();
             }
         }
     });
     $(".Info").click(function () {
+        $("#Info").show();
         $("#Info").dialog("open");
     });
     
@@ -1580,11 +1581,12 @@ $(document).ready(function () {
         buttons: {
             Close: function () {
                 $(this).dialog("close");
-                $("#Legend").remove();
+                $("#Legend").hide();
             }
         }
     });
     $(".Legend").click(function () {
+        $("#Legend").show();
         $("#Legend").dialog("open");
     });
 });
