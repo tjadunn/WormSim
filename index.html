@@ -2,7 +2,7 @@
 <html lang="en">
   <head> 
     <meta charset="utf-8">
-      <title>WormSim: Worm propogation simulator</title>
+      <title font face="verdana" color="grey">WormSim: Worm propogation simulator </title>
 <script type="text/javascript" src="d3/d3.js"></script>
 <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
@@ -13,9 +13,9 @@
     font-size: .8em;
 }
 .ui-widget-content {
-    background: #F9F9F9;
-    border: 1px solid #90d93f;
-    color: #222222;
+    background: #E5E4E2;
+    border: 1px solid #2C3539;
+    color: #2C3539;
 }
 .ui-dialog {
     left: 0;
@@ -36,16 +36,26 @@
     padding: 0 !important;
 }
 .ui-widget-header {
-    background: #b0de78;
+    background: #B6B6B4;
     border: 0;
-    color: #fff;
+    color: #2C3539;
     font-weight: normal;
 }
 .ui-dialog-titlebar-close {
     display:none;
 }
+h1 { 
+    display: block;
+    font-size: 2em;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+    color: #2C3539;
+}
 </style>
-<body>
+<body background="subtle_zebra_3d.png">
     <h1 style="font-size:200%"> <center> WormSim</center> </h1> 
     <div id="Info" title="Information">
         <p>WormSim - A computer worm propagation simulator; enables combinations of different known worms, attack & defense methods and network topologies to be configured in order to simulate how worms may behave in different environments</p>
@@ -125,6 +135,8 @@ var gnodes;
 
 //fd layout 
 var force;
+var chargeVal = -500;
+var linkDist = 200;
 
 //var for svg elements
 var svg;
@@ -329,8 +341,8 @@ var levelOne = function()
   generate_dropdown(dataset1, "divLevelOne", diameter);
   generate_graph(dataset1);
   $("#commentary").fadeOut(function() {
-    $(this).text("Level one generated").fadeIn(2000);
-    $(this).text("Level one generated").fadeOut(2000);
+    $(this).text("Level one generated below").fadeIn(2000);
+    $(this).text("Level one generated below").fadeOut(2000);
   });
   //$("#commentary").empty();
 }
@@ -346,8 +358,8 @@ var levelTwo = function()
   generate_dropdown(dataset2, "divLevelTwo");
   generate_graph(dataset2);
   $("#commentary").fadeOut(function() {
-    $(this).text("Level two generated").fadeIn(2000);
-    $(this).text("Level two generated").fadeOut(2000);
+    $(this).text("Level two generated below").fadeIn(2000);
+    $(this).text("Level two generated below").fadeOut(2000);
   });
   //$("#commentary").empty();
 } 
@@ -362,8 +374,8 @@ var levelThree = function()
   generate_dropdown(dataset3, "divLevelThree");
   generate_graph(dataset3);
   $("#commentary").fadeOut(function() {
-    $(this).text("Level three generated").fadeIn(2000);
-    $(this).text("Level three generated").fadeOut(2000);
+    $(this).text("Level three generated below").fadeIn(2000);
+    $(this).text("Level three generated below").fadeOut(2000);
   });
 }
 
@@ -411,8 +423,8 @@ function generate_graph(dataset)
     .nodes(dataset.nodes)
     .links(dataset.edges)
     .size([w, h])
-    .linkDistance([100])
-    .charge([-500])
+    .linkDistance([linkDist])
+    .charge([chargeVal])
     .start()
     .on("end", function() {
       converged = true;
@@ -714,9 +726,14 @@ function generate_custom()
            //create option for each node
            for(var val in attacks)
            {
+             if(type != "Star" && attacks[val] == "DDoS.Smurf")
+               continue;
+             else if(type == "Star" && (attacks[val] == "Botnet.Storm" || attacks[val] == "Worm"))
+               continue;
+             else 
              $("<option />", {value: val, 
                              text: attacks[val]})
-                             .appendTo(attackSelectMenu);
+                             .appendTo(attackSelectMenu); 
            }
            attackSelectMenu.appendTo("#divLevelCustom");
            attackSelectMenu.on("change", function(f) {
@@ -786,7 +803,7 @@ function start_storm_simulation(dataset)
 {
  
     spawn = spawnWorm("W32.STORM");
-    gnodes.data()[spawn].infected_with = "W32.STORM";
+    //gnodes.data()[spawn].infected_with = "W32.STORM";
     window.setTimeout(function() {
         $("#commentary").fadeOut(function() {
             console.log(gnodes.data()[spawn].name);
@@ -799,6 +816,7 @@ function start_storm_simulation(dataset)
     //botnetMin = 4;
     console.log(dataset);
     start(dataset, "W32.STORM");
+    gnodes.data()[spawn].infected_with = "W32.STORM";
 }
 
 function start_smurf_simulation(dataset)
@@ -998,7 +1016,7 @@ function generate_graph_data(num_nodes, type)
       for(j = 0; j < num_nodes; j++)
       {
           randLength = Math.floor((Math.random() 
-                                      * (num_nodes/2)) + 1); //cant be 0
+                                      * (Math.sqrt(num_nodes))) + 1); //cant be 0
          // console.log("Mesh:", randLength);
           for(var k = 0; k < randLength; k++)
           {
@@ -1006,6 +1024,9 @@ function generate_graph_data(num_nodes, type)
                                       * (num_nodes)));
               console.log("Node:", randNode);
               dataset.nodes[j].adjacent_to.push(randNode);
+              dataset.nodes[randNode].adjacent_to.push(j);
+
+              dataset.edges.push({ source: randNode, target: j });
               dataset.edges.push({ source: j, target: randNode });
           }
           
@@ -1089,7 +1110,6 @@ function generate_dropdown(dataset, div_location)
       wormSelectMenu.on("change", function(e) {
       worm = this.options[e.target.selectedIndex].text;
           //create release button
-      $("wormbtn").hide();
       wormbtn = $("<button/>", {text: "Release Worm", 
                            id: "wormbtn",
                            click: function () {          
@@ -1376,6 +1396,18 @@ function moveWorm(dataset)
 //remove svg's
 // (repeat)
 
+
+function stormInfections()
+{
+  var stormNode = 0;
+   
+  for(var i = 0; i < gnodes.data().length; i++)
+    if(gnodes.data()[i].infected_with == "W32.STORM")
+      stormNode++;
+  
+  return stormNode;
+
+}
 //get source (infected nodes) and target (nodes to be infected) coords
 //funciton skipping ahead and infecting before worm transmitted//
 function updateInfections(worm)
@@ -1409,7 +1441,7 @@ function updateInfections(worm)
     //check if nodes adjacent are not infected
     //infect them if so
     
-    if(worm == "W32.STORM" && newMarkedInfections.length > botnetMin) //does not follow normal propogation 
+    if(worm == "W32.STORM" && stormInfections() >= botnetMin) //does not follow normal propogation 
     {
         for(var j = 0; j < newMarkedInfections.length; j++)
         {
