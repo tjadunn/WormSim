@@ -93,6 +93,26 @@ function settleLayout()
   }
 }
 
+//Simulation for W32.STORM and botnet
+function start_storm_simulation(dataset)
+{
+ 
+  spawn = spawnWorm("W32.STORM");
+  //gnodes.data()[spawn].infected_with = "W32.STORM";
+  window.setTimeout(function() {
+      $("#commentary").fadeOut(function() {
+          console.log(gnodes.data()[spawn].name);
+        $(this).text("Node: " + (spawn)
+                     + " infected with W32.STORM!").fadeIn(2000);
+        $(this).text("Node: " + (spawn)
+                     + " infected with W32.STORM!").fadeOut(2000);
+      });
+  }, 2000);
+  //botnetMin = 4;
+  console.log(dataset);
+  start(dataset, "W32.STORM");
+  gnodes.data()[spawn].infected_with = "W32.STORM";
+}
 
 
 //Simulation for W32.SLAMMER and DDoS.Smurf
@@ -116,26 +136,7 @@ function start_smurf_simulation(dataset)
   start(smurfData, "W32.SLAMMER"); 
 }
 
-//Simulation for W32.STORM and botnet
-function start_storm_simulation(dataset)
-{
- 
-  spawn = spawnWorm("W32.STORM");
-  //gnodes.data()[spawn].infected_with = "W32.STORM";
-  window.setTimeout(function() {
-      $("#commentary").fadeOut(function() {
-          console.log(gnodes.data()[spawn].name);
-        $(this).text("Node: " + (spawn)
-                     + " infected with W32.STORM!").fadeIn(2000);
-        $(this).text("Node: " + (spawn)
-                     + " infected with W32.STORM!").fadeOut(2000);
-      });
-  }, 2000);
-  //botnetMin = 4;
-  console.log(dataset);
-  start(dataset, "W32.STORM");
-  gnodes.data()[spawn].infected_with = "W32.STORM";
-}
+
 
 function updateSmurf()
 {
